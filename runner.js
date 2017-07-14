@@ -1,5 +1,4 @@
 const CLIENTS_NUM = 2;
-const THRESHOLD = CLIENTS_NUM * (CLIENTS_NUM + 1);
 const TYPE_REQ = 0;
 const TYPE_ACK = 1;
 
@@ -62,11 +61,19 @@ exports.Runner = class {
     }
   }
 
+  checkReady() {
+    this.progress();
+
+    const reqs = this.queue.filter(q => q.type == TYPE_REQ).length;
+    return this.queue.length == reqs * (CLIENTS_NUM + 1);
+  }
+
   exec() {
     this.progress();
     this.log('--- exec ---');
     this.previewQueue();
-    if (this.proc == process) process.exit();
+    this.log('--- ---- ---');
+    this.queue.splice(0, this.queue.length);
   }
 
   recv(e) {
@@ -76,7 +83,7 @@ exports.Runner = class {
     this.log('recv', this.messageStringify(e));
     this.addQueue(e);
     if (e.type == TYPE_REQ) this.ack(e);
-    if (this.queue.length >= THRESHOLD) this.exec();
+    if (this.checkReady()) this.exec();
   }
 
   req() {
